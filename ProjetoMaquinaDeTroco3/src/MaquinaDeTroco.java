@@ -1,11 +1,15 @@
-
-import java.text.DecimalFormat;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class MaquinaDeTroco {
 	
-	private double moeda5,moeda10, moeda25, moeda50,moeda1;
-	private double troco, dinheiroNoCaixa,moedas;
+	private double moeda5,moeda10, moeda25, moeda50,moeda1,troco,dinheiroNoCaixa,moedas;
 	
 	public double getMoeda5() {
 		return moeda5;
@@ -65,16 +69,15 @@ public class MaquinaDeTroco {
 		this.moeda1 = 0.0;
 		this.dinheiroNoCaixa = 0.0;
 	}
-	private double calculaDinheiroCaixa() {
+	public double calculaDinheiroCaixa() {
 		this.dinheiroNoCaixa = moeda10 * 0.1 + moeda25 * 0.25 + moeda50*0.5 + moeda1 +moeda5 *0.05;
 		return dinheiroNoCaixa;
 	}
 	public double abasteceCaixa() {
 		int quant = 0,opcao = 0;
 		Scanner sc = new Scanner(System.in);
-		System.out.println("H� "+dinheiroNoCaixa);
 		System.out.println("Qual moeda deseja inserir?\n 1) 05 centavos\n 2) 10 centavos\n 3) 25 centavos \n 4) 50 centavos\n 5) 1 real\n 6) sair");
-		System.out.println("Digite a op��o desejada:");
+		System.out.println("Digite a opção desejada:");
 		opcao = sc.nextInt();
 		while(true) {
 			switch(opcao) {
@@ -109,6 +112,8 @@ public class MaquinaDeTroco {
 				case 6:
 					 System.out.println("Dinheiro no caixa atualizado:"+ calculaDinheiroCaixa());
 					 return calculaDinheiroCaixa();
+				default:
+					System.out.println("Opção incorreta, Digite uma opção valida");
 				}	
 			System.out.println("Deseja continuar abastecendo o caixa?");
 			System.out.println("Se sim digite a moeda que deseja colocar, Para sair digite 6\n "
@@ -122,7 +127,7 @@ public class MaquinaDeTroco {
 			}
 		
 	}
-	public boolean Sangria() {
+	public boolean sangria() throws IllegalArgumentException, IOException {
 		if(dinheiroNoCaixa>= 0 )
 			System.out.println("Foram retiradas: "
 					+moeda10+" moedas de 10 centavos // "
@@ -144,17 +149,14 @@ public class MaquinaDeTroco {
 			}
 	}
 
-	public double CalculaTroco(double valorDoProduto,double valorRecebido) {
+	public double calculaTroco(double valorDoProduto,double valorRecebido) {
+
 		double aux = 0.0, aux2 = 0.0;
-		int cont = 0;
 		if(valorDoProduto <= valorRecebido) {
 			troco = valorRecebido - valorDoProduto;
 			aux2 = troco;
 			if(dinheiroNoCaixa >= troco) {
-				while(true) {
-					//System.out.println(aux2);
-					System.out.println(aux);
-					System.out.println(troco);
+				while(true) {					
 					if(troco == aux || troco -0.000000000000001 == aux || troco -0.000000000000002 == aux || troco -0.000000000000003 == aux || troco -0.000000000000004 == aux 
 						|| troco -0.000000000000005 == aux || troco -0.000000000000006 == aux || troco -0.000000000000007 == aux || troco -0.000000000000008 == aux || troco -0.000000000000009 == aux) {
 						System.out.println("Troco realizado com sucesso:"+ troco);
@@ -162,10 +164,8 @@ public class MaquinaDeTroco {
 					}
 					else if(aux <= troco-1 && moeda1 != 0) {
 						aux = aux+1.0;
-						//System.out.println(aux);
 						aux2= aux2-1.0;
 						moeda1= moeda1-1.0;
-						System.out.println("AQUI "+ moeda1);
 					}
 					else if(aux <= troco-0.5 && moeda50 !=0) {
 						aux =aux+ 0.5;
@@ -203,6 +203,92 @@ public class MaquinaDeTroco {
 			return 0.0;
 		}
 	}
+	
+	public void salvaCaixa()throws IOException, IllegalArgumentException{
+		int i = 0;
+		if(dinheiroNoCaixa == 0)
+			throw new IllegalArgumentException();
+		
+		try{
+			BufferedWriter bw = new BufferedWriter(new FileWriter("dinheiroNoCaixa.txt"));
+			String y = "";
+				//Moeda 1 real
+					bw.write(moeda1+y);
+					moeda1 = 0;
+					bw.newLine();
+				
+				//Moeda 50 centavos
+					bw.write(moeda50+y);
+					moeda50 = 0;
+					bw.newLine();
+				//Moeda 25 centavos
+					bw.write(moeda25+y);
+					moeda25 = 0;
+					bw.newLine();
+					
+				//Moeda 10 centavos
+					bw.write(moeda10+y);
+					moeda10 = 0;
+					bw.newLine();
+					
+				//Moeda 5 centavos
+					bw.write(moeda5+y);
+					moeda5 = 0;
+					bw.newLine();
+				calculaDinheiroCaixa();
+			bw.close();
+			System.out.println("Caixa Salvo");
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 
-
+	public void resgataCaixa()throws IOException, IllegalArgumentException {
+		int cont = 0;
+		try{
+			BufferedReader br = new BufferedReader(new FileReader("dinheiroNoCaixa.txt"));
+				String line =  br.readLine();
+			while(br.ready()){
+					if(cont == 0) {
+						moeda1 = moeda1+Double.parseDouble(line);
+						cont++;
+					}
+					else if(cont == 1) {
+						moeda50 = moeda50+Double.parseDouble(line);
+						cont++;
+					}
+					else if(cont == 2) {
+						moeda25 = moeda25+Double.parseDouble(line);
+						cont++;
+					}
+					else if(cont == 3) {
+						moeda10 = moeda10+Double.parseDouble(line);
+						cont++;
+					}
+					else if(cont == 4) {
+						moeda5 = moeda5+Double.parseDouble(line);
+						br.close();
+						calculaDinheiroCaixa();
+					}
+					else {
+						return;
+					}
+				line  = br.readLine();
+			}	
+			BufferedWriter bw = new BufferedWriter(new FileWriter("dinheiroNoCaixa.txt"));
+			String y = "";
+				//Moeda 1 real
+					for (int j = 0; j < 5; j++) {
+						bw.write(0+y);
+						bw.newLine();
+					}
+			bw.close();
+			System.out.println("Caixa Não salvo");
+			}catch(IOException e){
+				e.printStackTrace();
+		}
+	}
+}
+			
+		
+	
